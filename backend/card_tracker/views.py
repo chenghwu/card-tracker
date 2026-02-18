@@ -19,12 +19,12 @@ from urllib.parse import urlencode
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect
-from rest_framework_simplejwt.tokens import RefreshToken
+from card_tracker.serializers import CustomTokenObtainPairSerializer
 
 
 def _get_tokens_for_user(user):
-    """Mint a JWT access/refresh token pair for the given user."""
-    refresh = RefreshToken.for_user(user)
+    """Mint a JWT access/refresh token pair for the given user (includes email claim)."""
+    refresh = CustomTokenObtainPairSerializer.get_token(user)
     return {
         'refresh': str(refresh),
         'access': str(refresh.access_token),

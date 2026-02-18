@@ -38,17 +38,13 @@ function CallbackHandler() {
       localStorage.setItem('access_token', access);
       localStorage.setItem('refresh_token', refresh);
 
-      // Fetch user info to store email for the settings page
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
-      fetch(`${apiUrl}/auth/user/`, {
-        headers: { Authorization: `Bearer ${access}` },
-      })
-        .then((r) => r.json())
-        .then((user) => {
-          if (user.email) localStorage.setItem('user_email', user.email);
-        })
-        .catch(() => {})
-        .finally(() => router.replace('/dashboard'));
+      // Decode email from the JWT payload (no network request needed)
+      try {
+        const payload = JSON.parse(atob(access.split('.')[1]));
+        if (payload.email) localStorage.setItem('user_email', payload.email);
+      } catch {}
+
+      router.replace('/dashboard');
     } else {
       setStatus('error');
       router.replace('/login?error=oauth_failed');
