@@ -14,11 +14,13 @@ Flow:
   6. The frontend /auth/callback page stores the tokens and navigates to /dashboard.
 """
 
+import traceback
 from urllib.parse import urlencode
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
+from django.views.decorators.http import require_GET
 from rest_framework_simplejwt.tokens import RefreshToken
 
 
@@ -29,6 +31,53 @@ def _get_tokens_for_user(user):
         'refresh': str(refresh),
         'access': str(refresh.access_token),
     }
+
+
+@require_GET
+def debug_oauth(request):
+    """Temporary diagnostic endpoint — remove after OAuth is confirmed working."""
+    try:
+        from allauth.socialaccount.models import SocialApp
+        from django.contrib.sites.models import Site
+        apps_in_db = list(SocialApp.objects.filter(provider='google').values('id', 'name', 'client_id'))
+        sites = list(Site.objects.values('id', 'domain'))
+    except Exception as e:
+        apps_in_db = str(e)
+        sites = []
+
+    try:
+        from allauth.socialaccount import app_settings as sa_settings
+        provider_config = sa_settings.PROVIDERS.get('google', {})
+        has_app_key = 'APP' in provider_config
+        has_apps_key = 'APPS' in provider_config
+        client_id_from_settings = (provider_config.get('APP') or {}).get('client_id', '')
+    except Exception as e:
+        has_app_key = has_apps_key = False
+        client_id_from_settings = str(e)
+
+    try:
+        import os
+        google_client_id_env = bool(os.environ.get('GOOGLE_CLIENT_ID'))
+    except Exception:
+        google_client_id_env = False
+
+    try:
+        from allauth.socialaccount.providers.google.provider import GoogleProvider
+        from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+        error_detail = 'provider import ok'
+    except Exception as e:
+        error_detail = traceback.format_exc()
+
+    return JsonResponse({
+        'google_client_id_env_set': google_client_id_env,
+        'client_id_from_settings': bool(client_id_from_settings),
+        'has_app_key': has_app_key,
+        'has_apps_key': has_apps_key,
+        'socialapps_in_db': apps_in_db,
+        'sites': sites,
+        'provider_import': error_detail,
+        'site_id': settings.SITE_ID,
+    })
 
 
 @login_required
