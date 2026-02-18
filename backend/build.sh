@@ -20,4 +20,7 @@ uv run python manage.py migrate
 echo "===> Loading seed data..."
 uv run python manage.py seed_cards
 
+echo "===> Configuring Google OAuth..."
+uv run python manage.py setup_oauth
+
 echo "===> Build complete!"
