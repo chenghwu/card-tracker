@@ -35,15 +35,21 @@ function CallbackHandler() {
     const refresh = searchParams.get('refresh');
 
     if (access && refresh) {
-      // Store JWT tokens for use by the rest of the app
       localStorage.setItem('access_token', access);
       localStorage.setItem('refresh_token', refresh);
 
-      // Navigate to the dashboard — replace the callback URL so the user
-      // can't navigate back to this page with stale tokens in the URL.
-      router.replace('/dashboard');
+      // Fetch user info to store email for the settings page
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+      fetch(`${apiUrl}/auth/user/`, {
+        headers: { Authorization: `Bearer ${access}` },
+      })
+        .then((r) => r.json())
+        .then((user) => {
+          if (user.email) localStorage.setItem('user_email', user.email);
+        })
+        .catch(() => {})
+        .finally(() => router.replace('/dashboard'));
     } else {
-      // Tokens not present — something went wrong with the OAuth flow.
       setStatus('error');
       router.replace('/login?error=oauth_failed');
     }
