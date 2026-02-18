@@ -54,13 +54,26 @@ class CardTemplateViewSet(viewsets.ReadOnlyModelViewSet):
         search_query = self.request.query_params.get('q', None)
 
         if search_query:
-            # Expand alias to full bank name if one exists
-            expanded = self.BANK_ALIASES.get(search_query.lower(), search_query)
-            queryset = queryset.filter(
-                Q(name__icontains=search_query) |
-                Q(bank__icontains=search_query) |
-                Q(bank__icontains=expanded)
-            )
+            # Expand alias: check full query and first word (e.g. "amex gold" → "American Express")
+            q_lower = search_query.lower()
+            first_word = q_lower.split()[0] if q_lower.split() else q_lower
+            expanded_full = self.BANK_ALIASES.get(q_lower, search_query)
+            expanded_first = self.BANK_ALIASES.get(first_word, first_word)
+            # When alias matches, search by expanded bank + remaining words as card name
+            rest_of_query = ' '.join(search_query.split()[1:]) if len(search_query.split()) > 1 else ''
+
+            if first_word in self.BANK_ALIASES and rest_of_query:
+                # e.g. "amex gold" → bank="American Express" AND name contains "gold"
+                queryset = queryset.filter(
+                    Q(bank__icontains=expanded_first) & Q(name__icontains=rest_of_query)
+                )
+            else:
+                queryset = queryset.filter(
+                    Q(name__icontains=search_query) |
+                    Q(bank__icontains=search_query) |
+                    Q(bank__icontains=expanded_full) |
+                    Q(bank__icontains=expanded_first)
+                )
 
         return queryset.order_by('bank', 'name')
 

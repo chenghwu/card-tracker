@@ -55,6 +55,7 @@ class UserBenefitSerializer(serializers.ModelSerializer):
     effective_name = serializers.ReadOnlyField()
     effective_amount_cents = serializers.ReadOnlyField()
     usage_records = BenefitUsageSerializer(many=True, read_only=True)
+    card_name = serializers.SerializerMethodField()
 
     # These will be populated by tracking service
     used_amount_cents = serializers.IntegerField(read_only=True, required=False)
@@ -64,6 +65,9 @@ class UserBenefitSerializer(serializers.ModelSerializer):
     deadline_urgency = serializers.CharField(source='urgency', read_only=True, required=False)
     days_until_deadline = serializers.IntegerField(source='days_until_expiry', read_only=True, required=False)
 
+    def get_card_name(self, obj):
+        return obj.user_card.nickname or obj.user_card.card_template.name
+
     class Meta:
         model = UserBenefit
         fields = [
@@ -71,7 +75,7 @@ class UserBenefitSerializer(serializers.ModelSerializer):
             'effective_name', 'effective_amount_cents', 'usage_records',
             'used_amount_cents', 'remaining_amount_cents',
             'current_period_start', 'current_period_end',
-            'deadline_urgency', 'days_until_deadline'
+            'deadline_urgency', 'days_until_deadline', 'card_name',
         ]
 
 

@@ -62,7 +62,7 @@ export function DeadlineList({ deadlines }: DeadlineListProps) {
                     </Badge>
                   </div>
                   <p className="text-xs sm:text-sm text-muted-foreground truncate">
-                    {benefit.category || 'Benefit'}
+                    {deadline.card_name} · {benefit.category || 'Benefit'}
                   </p>
                   <p className="text-sm font-medium">
                     {formatCurrency(remaining)} remaining

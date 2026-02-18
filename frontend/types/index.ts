@@ -133,6 +133,7 @@ export interface DashboardDeadline {
   current_period_end: string;
   deadline_urgency: 'critical' | 'warning' | 'upcoming' | 'ok';
   days_until_deadline: number;
+  card_name: string;
 }
 
 // Card Detail Response
