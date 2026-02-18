@@ -20,6 +20,3 @@ dependencies = [
     "python-decouple>=3.8",
 ]
 
-[[tool.uv.index]]
-url = "https://tetrascience.jfrog.io/artifactory/api/pypi/ts-pypi-virtual/simple"
-default = true
