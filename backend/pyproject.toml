@@ -18,5 +18,11 @@ dependencies = [
     "pyjwt>=2.11.0",
     "python-dateutil>=2.9.0.post0",
     "python-decouple>=3.8",
+    "dj-database-url>=2.1.0",
+    "whitenoise>=6.6.0",
 ]
+
+[[tool.uv.index]]
+url = "https://pypi.org/simple"
+default = true
 
