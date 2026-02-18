@@ -7,7 +7,7 @@ services:
     branch: main
     rootDir: backend
     buildCommand: "./build.sh"
-    startCommand: "gunicorn card_tracker.wsgi:application --bind 0.0.0.0:$PORT"
+    startCommand: "uv run gunicorn card_tracker.wsgi:application --bind 0.0.0.0:$PORT"
     healthCheckPath: /api/health/
     envVars:
       - key: PYTHON_VERSION
