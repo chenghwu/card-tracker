@@ -36,14 +36,30 @@ class CardTemplateViewSet(viewsets.ReadOnlyModelViewSet):
             return CardTemplateListSerializer
         return CardTemplateSerializer
 
+    # Common bank name aliases for search
+    BANK_ALIASES = {
+        'amex': 'American Express',
+        'chase': 'Chase',
+        'citi': 'Citibank',
+        'bofA': 'Bank of America',
+        'bofa': 'Bank of America',
+        'usbank': 'U.S. Bank',
+        'us bank': 'U.S. Bank',
+        'cap one': 'Capital One',
+        'capone': 'Capital One',
+    }
+
     def get_queryset(self):
         queryset = CardTemplate.objects.all()
         search_query = self.request.query_params.get('q', None)
 
         if search_query:
+            # Expand alias to full bank name if one exists
+            expanded = self.BANK_ALIASES.get(search_query.lower(), search_query)
             queryset = queryset.filter(
                 Q(name__icontains=search_query) |
-                Q(bank__icontains=search_query)
+                Q(bank__icontains=search_query) |
+                Q(bank__icontains=expanded)
             )
 
         return queryset.order_by('bank', 'name')
@@ -180,67 +196,23 @@ class UserBenefitViewSet(viewsets.GenericViewSet):
 
 
 @api_view(['GET'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def dashboard_summary(request):
     """
     Get dashboard summary statistics.
     GET /api/dashboard/summary/
     """
-    # Demo mode: return sample data if not authenticated
-    if not request.user.is_authenticated:
-        return Response({
-            'total_annual_fees_cents': 69500,  # $695 (e.g., one Amex Platinum)
-            'total_benefit_value_cents': 75000,  # $750 in benefits
-            'net_value_cents': 5500,  # $55 net positive
-            'total_benefits': 5,
-            'benefits_used': 2,
-            'benefits_fully_used': 1,
-            'utilization_rate': 0.40,  # 40% utilization
-        })
-
     summary = get_dashboard_summary(request.user)
     return Response(summary)
 
 
 @api_view(['GET'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def dashboard_deadlines(request):
     """
     Get expiring benefits (benefits with value remaining that expire soon).
     GET /api/dashboard/deadlines/?days=30
     """
-    # Demo mode: return sample deadline data if not authenticated
-    if not request.user.is_authenticated:
-        return Response({
-            'count': 2,
-            'benefits': [
-                {
-                    'id': 1,
-                    'name': 'Uber Cash',
-                    'amount_cents': 1500,
-                    'remaining_cents': 1500,
-                    'used_cents': 0,
-                    'percent_used': 0,
-                    'urgency': 'warning',
-                    'days_remaining': 5,
-                    'period_end': '2026-02-28',
-                    'card_name': 'Amex Platinum',
-                },
-                {
-                    'id': 2,
-                    'name': 'Entertainment Credit',
-                    'amount_cents': 2000,
-                    'remaining_cents': 1000,
-                    'used_cents': 1000,
-                    'percent_used': 50,
-                    'urgency': 'upcoming',
-                    'days_remaining': 12,
-                    'period_end': '2026-02-28',
-                    'card_name': 'Amex Platinum',
-                }
-            ]
-        })
-
     max_days = int(request.query_params.get('days', 30))
     expiring_benefits = get_expiring_benefits(request.user, max_days=max_days)
 
