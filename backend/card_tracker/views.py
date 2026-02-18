@@ -14,11 +14,13 @@ Flow:
   6. The frontend /auth/callback page stores the tokens and navigates to /dashboard.
 """
 
+import traceback
 from urllib.parse import urlencode
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
+from django.views.decorators.http import require_GET
 from rest_framework_simplejwt.tokens import RefreshToken
 
 
@@ -29,6 +31,19 @@ def _get_tokens_for_user(user):
         'refresh': str(refresh),
         'access': str(refresh.access_token),
     }
+
+
+@require_GET
+def debug_google_login(request):
+    try:
+        from allauth.socialaccount.providers.oauth2.views import OAuth2LoginView
+        return OAuth2LoginView.adapter_view(
+            __import__('allauth.socialaccount.providers.google.views', fromlist=['GoogleOAuth2Adapter']).GoogleOAuth2Adapter
+        )(request)
+    except Exception:
+        from allauth.socialaccount.models import SocialApp
+        apps = list(SocialApp.objects.filter(provider='google').values())
+        return JsonResponse({'error': traceback.format_exc(), 'db_apps': apps})
 
 
 @login_required
