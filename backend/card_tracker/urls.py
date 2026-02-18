@@ -17,7 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
-from card_tracker.views import google_oauth_done, debug_oauth, debug_google_login
+from card_tracker.views import google_oauth_done
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -41,8 +41,6 @@ urlpatterns = [
     # After allauth finishes the OAuth flow and logs the user in via session,
     # this view mints JWT tokens and redirects to the Next.js frontend.
     path('api/auth/google/done/', google_oauth_done, name='google_oauth_done'),
-    path('api/debug/oauth/', debug_oauth, name='debug_oauth'),
-    path('api/debug/google-login/', debug_google_login, name='debug_google_login'),
 
     # Application API routes
     path('api/', include('cards.urls')),

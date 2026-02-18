@@ -254,12 +254,10 @@ REST_AUTH = {
 }
 
 # Social Auth Providers
+# Note: APP credentials are stored in the DB (SocialApp model) not in settings,
+# to avoid allauth 65+ raising MultipleObjectsReturned when both exist.
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
-        'APP': {
-            'client_id': config('GOOGLE_CLIENT_ID', default=''),
-            'secret': config('GOOGLE_CLIENT_SECRET', default=''),
-        },
         'SCOPE': [
             'profile',
             'email',
@@ -270,10 +268,7 @@ SOCIALACCOUNT_PROVIDERS = {
         'OAUTH_PKCE_ENABLED': True,
     },
     'apple': {
-        'APP': {
-            'client_id': config('APPLE_CLIENT_ID', default=''),
-            'secret': config('APPLE_CLIENT_SECRET', default=''),
-        }
+        'SCOPE': ['email', 'name'],
     }
 }
 
