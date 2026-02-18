@@ -8,7 +8,8 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 export PATH="$HOME/.cargo/bin:$PATH"
 
 echo "===> Installing dependencies with uv..."
-uv sync
+unset UV_DEFAULT_INDEX
+uv sync --index-url https://pypi.org/simple/
 
 echo "===> Collecting static files..."
 uv run python manage.py collectstatic --no-input
