@@ -8,7 +8,7 @@ export default function LandingPage() {
     <div className="min-h-screen bg-gradient-to-b from-background to-muted">
       {/* Header */}
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center justify-between">
+        <div className="container mx-auto flex h-16 items-center justify-between">
           <div className="flex items-center gap-2">
             <CreditCard className="h-6 w-6" />
             <span className="text-xl font-bold">Card Tracker</span>
@@ -25,7 +25,7 @@ export default function LandingPage() {
       </header>
 
       {/* Hero Section */}
-      <section className="container py-24 md:py-32">
+      <section className="container mx-auto py-24 md:py-32">
         <div className="mx-auto max-w-3xl text-center">
           <h1 className="text-4xl font-bold tracking-tight sm:text-6xl">
             Never Miss a Credit Card Benefit Again
@@ -46,7 +46,7 @@ export default function LandingPage() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="container py-24">
+      <section id="features" className="container mx-auto py-24">
         <div className="mx-auto max-w-5xl">
           <div className="text-center">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
@@ -106,7 +106,7 @@ export default function LandingPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="container py-24">
+      <section className="container mx-auto py-24">
         <div className="mx-auto max-w-3xl text-center">
           <h2 className="text-3xl font-bold tracking-tight">
             Ready to maximize your credit card benefits?
@@ -124,7 +124,7 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="border-t py-8">
-        <div className="container text-center text-sm text-muted-foreground">
+        <div className="container mx-auto text-center text-sm text-muted-foreground">
           <p>&copy; 2026 Card Tracker. All rights reserved.</p>
         </div>
       </footer>
