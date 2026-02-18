@@ -127,10 +127,12 @@ def get_dashboard_summary(user, reference_date: date = None):
     total_benefits = 0
     total_credits_available_cents = 0
     total_credits_used_cents = 0
+    total_annual_fee_cents = 0
     critical_benefits = 0
     warning_benefits = 0
 
     for user_card in user_cards:
+        total_annual_fee_cents += user_card.card_template.annual_fee_cents
         for user_benefit in user_card.benefits.all():
             total_benefits += 1
 
@@ -151,6 +153,7 @@ def get_dashboard_summary(user, reference_date: date = None):
     return {
         'total_cards': total_cards,
         'total_benefits': total_benefits,
+        'total_annual_fee_cents': total_annual_fee_cents,
         'total_credits_available_cents': total_credits_available_cents,
         'total_credits_used_cents': total_credits_used_cents,
         'total_credits_total_cents': total_credits_available_cents + total_credits_used_cents,

@@ -107,6 +107,7 @@ export interface RecordUsageRequest {
 export interface DashboardSummary {
   total_cards: number;
   total_benefits: number;
+  total_annual_fee_cents: number;
   total_credits_available_cents: number;
   total_credits_used_cents: number;
   total_credits_total_cents: number;
@@ -119,20 +120,7 @@ export interface DashboardSummary {
 // The backend serializes urgency as `deadline_urgency` (source='urgency') and
 // days remaining as `days_until_deadline` (source='days_until_expiry') via
 // UserBenefitSerializer.
-export interface DashboardDeadline {
-  id: number;
-  benefit_template: BenefitTemplate;
-  custom_amount_cents: number | null;
-  custom_name: string;
-  effective_name: string;
-  effective_amount_cents: number;
-  usage_records: any[];
-  used_amount_cents: number;
-  remaining_amount_cents: number;
-  current_period_start: string;
-  current_period_end: string;
-  deadline_urgency: 'critical' | 'warning' | 'upcoming' | 'ok';
-  days_until_deadline: number;
+export interface DashboardDeadline extends UserBenefit {
   card_name: string;
 }
 

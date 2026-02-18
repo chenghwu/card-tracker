@@ -66,7 +66,9 @@ class UserBenefitSerializer(serializers.ModelSerializer):
     days_until_deadline = serializers.IntegerField(source='days_until_expiry', read_only=True, required=False)
 
     def get_card_name(self, obj):
-        return obj.user_card.nickname or obj.user_card.card_template.name
+        name = obj.user_card.nickname or obj.user_card.card_template.name
+        bank = obj.user_card.card_template.bank
+        return f"{bank} {name}"
 
     class Meta:
         model = UserBenefit
