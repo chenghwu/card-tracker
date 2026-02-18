@@ -1,0 +1,61 @@
+'use client';
+
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { formatCurrency, formatDate } from '@/lib/utils';
+import type { UserCard } from '@/types';
+import Link from 'next/link';
+import { CreditCard } from 'lucide-react';
+
+interface CardItemProps {
+  card: UserCard;
+}
+
+export function CardItem({ card }: CardItemProps) {
+  const { card_template, open_date, nickname } = card;
+
+  return (
+    <Card className="hover:shadow-lg transition-all duration-200 hover:scale-[1.02]">
+      <CardHeader>
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex-1 min-w-0">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              {card_template.image_url ? (
+                <img
+                  src={card_template.image_url}
+                  alt={card_template.name}
+                  className="h-8 w-12 rounded object-cover flex-shrink-0"
+                />
+              ) : (
+                <CreditCard className="h-6 w-6 text-muted-foreground flex-shrink-0" />
+              )}
+              <span className="truncate">{nickname || card_template.name}</span>
+            </CardTitle>
+            <CardDescription className="mt-1 truncate">
+              {card_template.bank}
+            </CardDescription>
+          </div>
+          {card_template.is_verified && (
+            <Badge variant="secondary" className="flex-shrink-0">Verified</Badge>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex justify-between text-sm">
+          <span className="text-muted-foreground">Annual Fee</span>
+          <span className="font-medium">
+            {formatCurrency(card_template.annual_fee_cents)}
+          </span>
+        </div>
+        <div className="flex justify-between text-sm">
+          <span className="text-muted-foreground">Opened</span>
+          <span className="font-medium">{formatDate(open_date)}</span>
+        </div>
+        <Button asChild className="w-full">
+          <Link href={`/cards/${card.id}`}>View Benefits</Link>
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}

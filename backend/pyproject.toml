@@ -1,0 +1,25 @@
+[project]
+name = "backend"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "dj-rest-auth>=7.1.1",
+    "django>=5.2.11",
+    "django-allauth>=65.14.3",
+    "django-cors-headers>=4.9.0",
+    "djangorestframework>=3.16.1",
+    "djangorestframework-simplejwt>=5.5.1",
+    "google-genai>=1.63.0",
+    "google-generativeai>=0.8.6",
+    "gunicorn>=25.1.0",
+    "psycopg2-binary>=2.9.11",
+    "pyjwt>=2.11.0",
+    "python-dateutil>=2.9.0.post0",
+    "python-decouple>=3.8",
+]
+
+[[tool.uv.index]]
+url = "https://tetrascience.jfrog.io/artifactory/api/pypi/ts-pypi-virtual/simple"
+default = true
