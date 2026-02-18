@@ -34,6 +34,16 @@ def _get_tokens_for_user(user):
 
 
 @require_GET
+def debug_google_login(request):
+    """Wraps allauth's Google login view to expose the actual exception."""
+    try:
+        from allauth.socialaccount.providers.google.views import oauth2_login
+        return oauth2_login(request)
+    except Exception:
+        return JsonResponse({'error': traceback.format_exc()}, status=200)
+
+
+@require_GET
 def debug_oauth(request):
     """Temporary diagnostic endpoint — remove after OAuth is confirmed working."""
     try:
