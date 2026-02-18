@@ -25,11 +25,9 @@ export default function LoginPage() {
         ? process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, '')
         : 'http://localhost:8000');
 
-    const callbackUrl = encodeURIComponent(
-      `${window.location.origin}/auth/callback`
-    );
-
-    window.location.href = `${backendUrl}/accounts/google/login/?next=${callbackUrl}`;
+    // No ?next= param — allauth rejects cross-domain next URLs as unsafe.
+    // LOGIN_REDIRECT_URL in Django settings handles the post-login redirect.
+    window.location.href = `${backendUrl}/accounts/google/login/`;
 
     // ---------------------------------------------------------------------------
     // DEMO FALLBACK — Remove this block once Google OAuth credentials are set up.
