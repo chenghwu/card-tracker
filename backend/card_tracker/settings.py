@@ -226,6 +226,7 @@ AUTHENTICATION_BACKENDS = [
 ACCOUNT_EMAIL_VERIFICATION = 'optional'
 ACCOUNT_LOGIN_METHODS = {'email'}
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
+SOCIALACCOUNT_LOGIN_ON_GET = True  # Allow GET to /accounts/google/login/ to redirect directly
 
 # After allauth completes the OAuth flow (server-side redirect flow), send the
 # browser to our JWT handoff view which mints tokens and redirects to the frontend.
