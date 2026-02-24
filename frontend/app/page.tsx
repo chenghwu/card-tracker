@@ -1,9 +1,24 @@
+'use client';
+
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CreditCard, TrendingUp, Bell, CheckCircle } from 'lucide-react';
 
 export default function LandingPage() {
+  const [isSignedIn, setIsSignedIn] = useState(false);
+  const [name, setName] = useState('');
+
+  useEffect(() => {
+    const token = localStorage.getItem('access_token');
+    const storedName = localStorage.getItem('user_name');
+    if (token) {
+      setIsSignedIn(true);
+      setName(storedName || '');
+    }
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted">
       {/* Header */}
@@ -14,12 +29,25 @@ export default function LandingPage() {
             <span className="text-xl font-bold">Card Tracker</span>
           </div>
           <nav className="flex items-center gap-4">
-            <Button variant="ghost" asChild>
-              <Link href="/login">Sign In</Link>
-            </Button>
-            <Button asChild>
-              <Link href="/login">Get Started</Link>
-            </Button>
+            {isSignedIn ? (
+              <>
+                <span className="text-sm text-muted-foreground hidden sm:block">
+                  Welcome, {name || 'back'}!
+                </span>
+                <Button asChild>
+                  <Link href="/dashboard">Go to Dashboard</Link>
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="ghost" asChild>
+                  <Link href="/login">Sign In</Link>
+                </Button>
+                <Button asChild>
+                  <Link href="/login">Get Started</Link>
+                </Button>
+              </>
+            )}
           </nav>
         </div>
       </header>
@@ -36,7 +64,9 @@ export default function LandingPage() {
           </p>
           <div className="mt-10 flex items-center justify-center gap-4">
             <Button size="lg" asChild>
-              <Link href="/login">Start Tracking Free</Link>
+              <Link href={isSignedIn ? '/dashboard' : '/login'}>
+                {isSignedIn ? 'Go to Dashboard' : 'Start Tracking Free'}
+              </Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
               <Link href="#features">Learn More</Link>
@@ -116,7 +146,9 @@ export default function LandingPage() {
           </p>
           <div className="mt-8">
             <Button size="lg" asChild>
-              <Link href="/login">Get Started Now</Link>
+              <Link href={isSignedIn ? '/dashboard' : '/login'}>
+                {isSignedIn ? 'Go to Dashboard' : 'Get Started Now'}
+              </Link>
             </Button>
           </div>
         </div>
