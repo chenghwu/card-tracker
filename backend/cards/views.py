@@ -388,7 +388,7 @@ def cron_send_reminders(request):
         return Response({'status': 'error', 'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-@api_view(['GET'])
+@api_view(['GET', 'HEAD'])
 @permission_classes([AllowAny])
 @throttle_classes([])
 def health_check(request):
