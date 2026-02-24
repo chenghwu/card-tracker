@@ -13,11 +13,22 @@ function isInAppBrowser() {
   return /FBAN|FBAV|Instagram|Twitter|Line\/|KAKAOTALK|Snapchat|TikTok|LinkedIn/i.test(ua);
 }
 
+function isAndroid() {
+  if (typeof navigator === 'undefined') return false;
+  return /Android/i.test(navigator.userAgent);
+}
+
 export default function LoginPage() {
   const [inAppBrowser, setInAppBrowser] = useState(false);
 
   useEffect(() => {
-    setInAppBrowser(isInAppBrowser());
+    const inApp = isInAppBrowser();
+    setInAppBrowser(inApp);
+    // On Android, immediately try to open in Chrome
+    if (inApp && isAndroid()) {
+      const url = window.location.href;
+      window.location.href = `intent://${url.replace(/^https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`;
+    }
   }, []);
 
   const handleGoogleSignIn = () => {
@@ -83,8 +94,11 @@ export default function LoginPage() {
             <Alert variant="destructive">
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription>
-                Google sign-in doesn&apos;t work inside Facebook or other in-app browsers.
-                Please open this page in <strong>Safari</strong> or <strong>Chrome</strong> to sign in.
+                {isAndroid() ? (
+                  <>Opening in Chrome&hellip; If it doesn&apos;t redirect automatically, tap the <strong>⋮</strong> menu and select <strong>Open in Chrome</strong>.</>
+                ) : (
+                  <>Google sign-in doesn&apos;t work in this browser. Tap the <strong>⋯</strong> button (bottom or top right) and select <strong>Open in Safari</strong>.</>
+                )}
               </AlertDescription>
             </Alert>
           )}
