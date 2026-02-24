@@ -42,8 +42,8 @@ class Command(BaseCommand):
         total_benefits = 0
 
         for user in users:
-            # Get expiring benefits for this user (within 7 days only)
-            expiring_benefits = get_expiring_benefits(user, today, max_days=7)
+            # Get expiring benefits for this user (1 day left only)
+            expiring_benefits = get_expiring_benefits(user, today, max_days=1)
 
             if not expiring_benefits:
                 continue
@@ -52,13 +52,7 @@ class Command(BaseCommand):
             benefits_by_threshold = defaultdict(list)
 
             for benefit in expiring_benefits:
-                days_left = benefit.days_until_expiry
-
-                # Categorize by threshold
-                if days_left <= 3:
-                    benefits_by_threshold['critical'].append(benefit)
-                else:
-                    benefits_by_threshold['warning_7'].append(benefit)
+                benefits_by_threshold['critical'].append(benefit)
 
             # Only send if there are benefits in our thresholds
             if benefits_by_threshold:
@@ -94,27 +88,18 @@ class Command(BaseCommand):
         """
         # Prepare email context
         critical_benefits = benefits_by_threshold.get('critical', [])
-        warning_7_benefits = benefits_by_threshold.get('warning_7', [])
 
-        total_unused_cents = sum(
-            b.remaining_amount_cents
-            for benefits_list in benefits_by_threshold.values()
-            for b in benefits_list
-        )
+        total_unused_cents = sum(b.remaining_amount_cents for b in critical_benefits)
 
         context = {
             'user': user,
             'critical_benefits': critical_benefits,
-            'warning_7_benefits': warning_7_benefits,
+            'warning_7_benefits': [],
             'total_unused': total_unused_cents / 100,
-            'total_benefits_count': sum(len(b) for b in benefits_by_threshold.values()),
+            'total_benefits_count': len(critical_benefits),
         }
 
-        # Create email subject
-        if critical_benefits:
-            subject = f'Card Tracker ⚠️ Urgent: {len(critical_benefits)} credit card benefit(s) expiring in 3 days!'
-        else:
-            subject = f'Card Tracker Reminder: {len(warning_7_benefits)} credit card benefit(s) expiring this week'
+        subject = f'Card Tracker ⚠️ Last chance: {len(critical_benefits)} credit card benefit(s) expiring today!'
 
         # Generate email body
         html_message = self.generate_html_email(context)
@@ -190,7 +175,7 @@ class Command(BaseCommand):
 
         {self._render_benefit_section(
             context.get('critical_benefits', []),
-            'Critical: Expiring in 3 days or less!',
+            'Expiring today or tomorrow — use now!',
             'critical',
             '🚨'
         )}
@@ -258,7 +243,7 @@ You have ${context['total_unused']:.2f} in unused credit card benefits expiring 
 """
 
         if context.get('critical_benefits'):
-            message += "\n🚨 CRITICAL: Expiring in 3 days or less!\n"
+            message += "\n🚨 Expiring today or tomorrow — use now!\n"
             message += "-" * 50 + "\n"
             for benefit in context['critical_benefits']:
                 card_name = benefit.user_card.nickname or benefit.user_card.card_template.name
