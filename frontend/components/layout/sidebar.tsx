@@ -82,7 +82,7 @@ export function MobileSidebar() {
           <span className="sr-only">Toggle menu</span>
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-64 p-0">
+      <SheetContent side="left" className="w-[80vw] max-w-64 p-0">
         <SidebarContent onNavigate={() => setOpen(false)} />
       </SheetContent>
     </Sheet>

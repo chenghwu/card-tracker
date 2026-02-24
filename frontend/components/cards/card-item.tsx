@@ -35,7 +35,7 @@ export function CardItem({ card }: CardItemProps) {
   });
 
   return (
-    <Card className={`hover:shadow-lg transition-all duration-200 hover:scale-[1.02] border-l-4 ${card.card_type === 'business' ? 'border-l-amber-500' : 'border-l-blue-500'}`}>
+    <Card className={`hover:shadow-lg transition-shadow duration-200 border-l-4 ${card.card_type === 'business' ? 'border-l-amber-500' : 'border-l-blue-500'}`}>
       <CardHeader>
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
@@ -51,11 +51,14 @@ export function CardItem({ card }: CardItemProps) {
               )}
               <span className="truncate">{nickname || card_template.name}</span>
             </CardTitle>
-            <CardDescription className="mt-1 truncate">
+            {card.nickname && (
+              <p className="text-xs text-muted-foreground mt-0.5 truncate">{card_template.name}</p>
+            )}
+            <CardDescription className="mt-0.5 truncate">
               {card_template.bank}
             </CardDescription>
           </div>
-          <div className="flex items-center gap-1 flex-shrink-0">
+          <div className="flex flex-wrap items-center gap-1 flex-shrink-0 justify-end">
             <Badge className={card.card_type === 'business' ? 'border-amber-500 text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30' : 'border-blue-500 text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/30'} variant="outline">
               {card.card_type === 'business' ? 'Business' : 'Personal'}
             </Badge>

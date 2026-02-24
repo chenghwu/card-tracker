@@ -5,16 +5,19 @@ import { useQuery } from '@tanstack/react-query';
 import { MainLayout } from '@/components/layout/main-layout';
 import { CardGrid } from '@/components/cards/card-grid';
 import { CardGridSkeleton } from '@/components/cards/card-grid-skeleton';
+import { CardTable } from '@/components/cards/card-table';
 import { AddCardDialog } from '@/components/cards/add-card-dialog';
 import { getUserCards } from '@/lib/api';
-import { CreditCard } from 'lucide-react';
+import { CreditCard, LayoutGrid, List } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 
 type FilterType = 'all' | 'personal' | 'business';
+type ViewType = 'grid' | 'table';
 
 export default function CardsPage() {
   const [filter, setFilter] = useState<FilterType>('all');
+  const [view, setView] = useState<ViewType>('grid');
 
   const {
     data: cards,
@@ -36,7 +39,7 @@ export default function CardsPage() {
   return (
     <MainLayout>
       <div className="space-y-8">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">My Cards</h1>
             <p className="text-muted-foreground">
@@ -55,35 +58,55 @@ export default function CardsPage() {
         )}
 
         {!isLoading && cards && cards.length > 0 && (
-          <div className="flex gap-2">
-            <Button
-              variant={filter === 'all' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setFilter('all')}
-            >
-              All ({cards.length})
-            </Button>
-            <Button
-              variant={filter === 'personal' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setFilter('personal')}
-            >
-              Personal ({personalCount})
-            </Button>
-            <Button
-              variant={filter === 'business' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setFilter('business')}
-            >
-              Business ({businessCount})
-            </Button>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant={filter === 'all' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setFilter('all')}
+              >
+                All ({cards.length})
+              </Button>
+              <Button
+                variant={filter === 'personal' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setFilter('personal')}
+              >
+                Personal ({personalCount})
+              </Button>
+              <Button
+                variant={filter === 'business' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setFilter('business')}
+              >
+                Business ({businessCount})
+              </Button>
+            </div>
+            <div className="flex gap-1 border rounded-md p-0.5">
+              <Button
+                variant={view === 'grid' ? 'secondary' : 'ghost'}
+                size="icon"
+                className="h-7 w-7"
+                onClick={() => setView('grid')}
+              >
+                <LayoutGrid className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={view === 'table' ? 'secondary' : 'ghost'}
+                size="icon"
+                className="h-7 w-7"
+                onClick={() => setView('table')}
+              >
+                <List className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         )}
 
         {isLoading ? (
           <CardGridSkeleton />
         ) : filteredCards && filteredCards.length > 0 ? (
-          <CardGrid cards={filteredCards} />
+          view === 'table' ? <CardTable cards={filteredCards} /> : <CardGrid cards={filteredCards} />
         ) : cards && cards.length > 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <div className="rounded-full bg-accent p-6 mb-4">

@@ -96,7 +96,7 @@ export default function BenefitsPage() {
             </p>
           </div>
           {!isLoading && totalBenefits > 0 && (
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               {(['all', 'unused', 'used'] as const).map((f) => (
                 <Button
                   key={f}

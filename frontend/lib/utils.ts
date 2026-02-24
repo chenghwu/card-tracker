@@ -41,13 +41,8 @@ export function getUrgencyColor(urgency: 'critical' | 'warning' | 'upcoming' | '
 // Format date to readable string
 // Parses YYYY-MM-DD as local date to avoid UTC timezone shift (e.g. 2026-02-01 showing as Jan 31)
 export function formatDate(dateString: string): string {
-  const [year, month, day] = dateString.split('-').map(Number);
-  const date = new Date(year, month - 1, day);
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'numeric',
-    day: 'numeric',
-    year: 'numeric',
-  }).format(date);
+  const [year, month, day] = dateString.split('-');
+  return `${month}/${day}/${year}`;
 }
 
 // Format datetime to readable string

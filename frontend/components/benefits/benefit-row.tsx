@@ -48,7 +48,7 @@ export function BenefitRow({ benefit, onUse, cardName, hideFrequency }: BenefitR
             )}
           </div>
           {template.description && (
-            <p className="text-xs sm:text-sm text-muted-foreground mb-2">
+            <p className="text-sm text-muted-foreground mb-2">
               {template.description}
             </p>
           )}
@@ -62,7 +62,7 @@ export function BenefitRow({ benefit, onUse, cardName, hideFrequency }: BenefitR
       </div>
 
       <div className="space-y-2">
-        <div className="flex flex-col sm:flex-row sm:justify-between gap-1 text-xs sm:text-sm">
+        <div className="flex flex-col sm:flex-row sm:justify-between gap-1 text-sm">
           <span className="text-muted-foreground">
             {formatCurrency(used)} used of {formatCurrency(amount)}
           </span>
@@ -74,7 +74,7 @@ export function BenefitRow({ benefit, onUse, cardName, hideFrequency }: BenefitR
       </div>
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-        <div className="text-xs text-muted-foreground order-2 sm:order-1">
+        <div className="text-sm text-muted-foreground order-2 sm:order-1">
           {benefit.current_period_start && benefit.current_period_end && (
             <span className="block sm:inline">
               Period: {formatDate(benefit.current_period_start)} - {formatDate(benefit.current_period_end)}

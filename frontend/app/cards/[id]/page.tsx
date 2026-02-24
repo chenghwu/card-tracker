@@ -103,7 +103,7 @@ export default function CardDetailPage() {
   const handleEditSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     editMutation.mutate({
-      nickname: editNickname || undefined,
+      nickname: editNickname,
       card_type: editCardType,
       credit_limit_cents: editCreditLimit ? Math.round(parseFloat(editCreditLimit) * 100) : null,
     });
@@ -186,6 +186,11 @@ export default function CardDetailPage() {
                         <Pencil className="h-4 w-4 text-muted-foreground" />
                       </Button>
                     </div>
+                    {card.nickname && (
+                      <p className="text-sm text-muted-foreground -mt-0.5 mb-0.5">
+                        {card.card_template.name}
+                      </p>
+                    )}
                     <p className="text-base sm:text-lg text-muted-foreground mb-2">
                       {card.card_template.bank}
                     </p>
