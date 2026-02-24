@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CardTemplate, BenefitTemplate, UserCard, UserBenefit, BenefitUsage
+from .models import CardTemplate, BenefitTemplate, UserCard, UserBenefit, BenefitUsage, UserProfile
 
 
 class BenefitTemplateSerializer(serializers.ModelSerializer):
@@ -126,3 +126,9 @@ class RecordUsageSerializer(serializers.Serializer):
     amount_cents = serializers.IntegerField(min_value=1)
     used_at = serializers.DateTimeField(required=False)
     note = serializers.CharField(max_length=500, required=False, allow_blank=True)
+
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = ['email_reminders_enabled']

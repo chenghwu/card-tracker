@@ -42,6 +42,11 @@ class Command(BaseCommand):
         total_benefits = 0
 
         for user in users:
+            # Skip users who have opted out of email reminders
+            profile = getattr(user, 'profile', None)
+            if profile and not profile.email_reminders_enabled:
+                continue
+
             # Fetch all benefits expiring within 7 days that still have value
             expiring_benefits = get_expiring_benefits(user, today, max_days=7)
 

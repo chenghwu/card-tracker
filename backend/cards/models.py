@@ -127,6 +127,17 @@ class UserBenefit(models.Model):
         return self.custom_name or self.benefit_template.name
 
 
+class UserProfile(models.Model):
+    """Per-user preferences and settings."""
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    email_reminders_enabled = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.user.username} profile"
+
+
 class BenefitUsage(models.Model):
     """Usage record for a benefit within a specific period"""
     user_benefit = models.ForeignKey(

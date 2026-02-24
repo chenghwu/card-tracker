@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { MainLayout } from '@/components/layout/main-layout';
 import {
   Card,
@@ -13,29 +14,44 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { User, Bell, LogOut, Mail } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { User, Bell, LogOut } from 'lucide-react';
+import { toast } from 'sonner';
+import { getPreferences, updatePreferences } from '@/lib/api';
 
 export default function SettingsPage() {
-  const [email, setEmail] = useState('demo@example.com');
+  const [email, setEmail] = useState('');
   const [name, setName] = useState('');
-  const [expiringBenefits, setExpiringBenefits] = useState(true);
-  const [weeklySummary, setWeeklySummary] = useState(false);
+  const queryClient = useQueryClient();
 
-  // Pull email from localStorage if available (e.g. stored after OAuth)
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('user_email');
-      if (stored) setEmail(stored);
+      const storedEmail = localStorage.getItem('user_email');
+      if (storedEmail) setEmail(storedEmail);
       const storedName = localStorage.getItem('user_name');
       if (storedName) setName(storedName);
     }
   }, []);
 
+  const { data: prefs, isLoading } = useQuery({
+    queryKey: ['preferences'],
+    queryFn: getPreferences,
+  });
+
+  const mutation = useMutation({
+    mutationFn: updatePreferences,
+    onSuccess: (data) => {
+      queryClient.setQueryData(['preferences'], data);
+      toast.success('Preferences saved');
+    },
+    onError: () => toast.error('Failed to save preferences'),
+  });
+
   const handleSignOut = () => {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
     localStorage.removeItem('user_email');
+    localStorage.removeItem('user_name');
     window.location.href = '/login';
   };
 
@@ -49,7 +65,7 @@ export default function SettingsPage() {
           </p>
         </div>
 
-        {/* Section 1: Account */}
+        {/* Account */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -61,27 +77,21 @@ export default function SettingsPage() {
           <CardContent className="space-y-4">
             {name && (
               <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground uppercase tracking-wide">
-                  Name
-                </Label>
+                <Label className="text-xs text-muted-foreground uppercase tracking-wide">Name</Label>
                 <p className="text-sm font-medium">{name}</p>
               </div>
             )}
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground uppercase tracking-wide">
-                Email
-              </Label>
-              <p className="text-sm font-medium">{email}</p>
-            </div>
-
+            {email && (
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground uppercase tracking-wide">Email</Label>
+                <p className="text-sm font-medium">{email}</p>
+              </div>
+            )}
             <Separator />
-
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium">Sign out</p>
-                <p className="text-xs text-muted-foreground">
-                  Clears your session and redirects to login
-                </p>
+                <p className="text-xs text-muted-foreground">Clears your session and redirects to login</p>
               </div>
               <Button variant="outline" onClick={handleSignOut} size="sm">
                 <LogOut className="h-4 w-4 mr-2" />
@@ -91,7 +101,7 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        {/* Section 2: Notifications */}
+        {/* Notifications */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -103,59 +113,34 @@ export default function SettingsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-5">
-            <Alert>
-              <Mail className="h-4 w-4" />
-              <AlertDescription>
-                Email notification settings will take effect once email is configured
-              </AlertDescription>
-            </Alert>
-
-            <div className="flex items-center justify-between gap-4">
-              <div className="space-y-0.5">
-                <Label htmlFor="expiring-benefits" className="text-sm font-medium">
-                  Email reminders for expiring benefits
-                </Label>
-                <p className="text-xs text-muted-foreground">
-                  Get notified when a benefit is about to expire
-                </p>
+            {isLoading ? (
+              <div className="flex items-center justify-between">
+                <div className="space-y-1.5">
+                  <Skeleton className="h-4 w-48" />
+                  <Skeleton className="h-3 w-64" />
+                </div>
+                <Skeleton className="h-6 w-10 rounded-full" />
               </div>
-              <Switch
-                id="expiring-benefits"
-                checked={expiringBenefits}
-                onCheckedChange={setExpiringBenefits}
-              />
-            </div>
-
-            <Separator />
-
-            <div className="flex items-center justify-between gap-4">
-              <div className="space-y-0.5">
-                <Label htmlFor="weekly-summary" className="text-sm font-medium">
-                  Weekly summary email
-                </Label>
-                <p className="text-xs text-muted-foreground">
-                  A digest of your benefit usage and upcoming deadlines each week
-                </p>
+            ) : (
+              <div className="flex items-center justify-between gap-4">
+                <div className="space-y-0.5">
+                  <Label htmlFor="email-reminders" className="text-sm font-medium">
+                    Email reminders for expiring benefits
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    Get notified at 7, 3, and 1 day before a benefit expires
+                  </p>
+                </div>
+                <Switch
+                  id="email-reminders"
+                  checked={prefs?.email_reminders_enabled ?? true}
+                  disabled={mutation.isPending}
+                  onCheckedChange={(checked) =>
+                    mutation.mutate({ email_reminders_enabled: checked })
+                  }
+                />
               </div>
-              <Switch
-                id="weekly-summary"
-                checked={weeklySummary}
-                onCheckedChange={setWeeklySummary}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Section 3: Display — placeholder for future use */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Display</CardTitle>
-            <CardDescription>
-              Display preferences will be available in a future update
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">Nothing to configure here yet.</p>
+            )}
           </CardContent>
         </Card>
       </div>

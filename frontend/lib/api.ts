@@ -188,3 +188,18 @@ export const getMonthlyOverview = async (): Promise<MonthlyOverviewBenefit[]> =>
   const response = await apiClient.get<MonthlyOverviewBenefit[]>('/dashboard/monthly-overview/');
   return response.data;
 };
+
+// Preferences
+export interface UserPreferences {
+  email_reminders_enabled: boolean;
+}
+
+export const getPreferences = async (): Promise<UserPreferences> => {
+  const response = await apiClient.get<UserPreferences>('/preferences/');
+  return response.data;
+};
+
+export const updatePreferences = async (data: Partial<UserPreferences>): Promise<UserPreferences> => {
+  const response = await apiClient.patch<UserPreferences>('/preferences/', data);
+  return response.data;
+};

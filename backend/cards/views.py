@@ -9,7 +9,9 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.db import connection
 from django.conf import settings
-from .models import CardTemplate, UserCard, UserBenefit, BenefitUsage
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from .models import CardTemplate, UserCard, UserBenefit, BenefitUsage, UserProfile
 from .serializers import (
     CardTemplateSerializer,
     CardTemplateListSerializer,
@@ -17,7 +19,14 @@ from .serializers import (
     UserCardListSerializer,
     UserBenefitSerializer,
     RecordUsageSerializer,
+    UserProfileSerializer,
 )
+
+
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        UserProfile.objects.get_or_create(user=instance)
 from .services.tracking import get_benefit_status, get_benefits_with_status, record_usage, delete_usage
 from .services.deadlines import get_expiring_benefits, get_dashboard_summary
 from .services.card_lookup import lookup_card_benefits, create_card_from_lookup
@@ -334,6 +343,26 @@ def dashboard_monthly_overview(request):
     results.sort(key=lambda b: (1 if b['is_fully_used'] else 0, b['name']))
 
     return Response(results)
+
+
+@api_view(['GET', 'PATCH'])
+@permission_classes([IsAuthenticated])
+def user_preferences(request):
+    """
+    Get or update user notification preferences.
+    GET  /api/preferences/
+    PATCH /api/preferences/
+    """
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+
+    if request.method == 'GET':
+        return Response(UserProfileSerializer(profile).data)
+
+    serializer = UserProfileSerializer(profile, data=request.data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])

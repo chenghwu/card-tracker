@@ -10,6 +10,7 @@ from .views import (
     card_lookup,
     health_check,
     cron_send_reminders,
+    user_preferences,
 )
 
 router = DefaultRouter()
@@ -25,4 +26,5 @@ urlpatterns = [
     path('card-lookup/', card_lookup, name='card-lookup'),
     path('health/', health_check, name='health-check'),
     path('cron/send-reminders/', cron_send_reminders, name='cron-send-reminders'),
+    path('preferences/', user_preferences, name='user-preferences'),
 ]
