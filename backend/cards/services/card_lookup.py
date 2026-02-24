@@ -2,6 +2,9 @@
 Gemini AI integration for card data lookup.
 Uses Gemini 2.5 Flash to extract card and benefit information.
 """
+import json
+import re
+
 from google import genai
 from django.conf import settings
 
@@ -38,31 +41,34 @@ def lookup_card_benefits(card_name: str, bank: str = None) -> dict:
         full_name = f"{bank} {card_name}" if bank else card_name
 
         prompt = f"""
-Please provide detailed information about the {full_name} credit card, including:
+Search the official issuer's website (e.g. americanexpress.com, chase.com, bankofamerica.com, capitalone.com) to find accurate information about the "{full_name}" credit card.
 
-1. Official card name
-2. Issuing bank
+Only use information from the card's official product page — do not use third-party review sites or estimated values.
+
+Include:
+1. Short card name (e.g. "Gold Card", "Sapphire Preferred", "Summit" — omit the bank name and trademark symbols)
+2. Issuing bank (e.g. "American Express", "Chase", "Bank of America")
 3. Annual fee (in USD)
-4. All recurring credit benefits (e.g., travel credits, dining credits, shopping credits)
+4. All recurring credit benefits (e.g., travel credits, dining credits, lounge passes with dollar value)
 
 For each benefit, include:
 - Benefit name
 - Description
 - Amount (in USD)
-- Frequency (monthly, quarterly, semi-annual, or annual)
-- Period type (calendar year or membership year)
+- Frequency (monthly, quarterly, semi_annual, or annual)
+- Period type (calendar_year or membership_year)
 - Category (travel, dining, entertainment, shopping, transportation, or other)
 
 Format your response as JSON with this structure:
 {{
     "bank": "Bank Name",
     "name": "Card Name",
-    "annual_fee_usd": 695,
+    "annual_fee_usd": 395,
     "benefits": [
         {{
             "name": "Benefit Name",
             "description": "Description of the benefit",
-            "amount_usd": 200,
+            "amount_usd": 100,
             "frequency": "annual",
             "period_type": "calendar_year",
             "category": "travel"
@@ -70,26 +76,34 @@ Format your response as JSON with this structure:
     ]
 }}
 
-Only include benefits that are:
-- Recurring credits (not one-time bonuses)
-- Have a fixed dollar amount
-- Are automatically available to all cardholders
+Include ALL of these benefit types if they apply:
+- Statement credits (e.g. travel credit, dining credit)
+- Lounge passes (value each pass at its retail/guest price)
+- Companion certificates or awards (value at the typical redemption value)
+- Wi-Fi passes (value each at retail price)
+- Global Entry / TSA PreCheck credits (annualize if given every 4 years)
+- Hotel or airline credits
+- Streaming or subscription credits
 
-If the card doesn't exist or you're not confident about the information, return:
+Do NOT include:
+- One-time welcome bonuses
+- Variable rewards (points multipliers, cashback %)
+- Benefits without a fixed dollar value
+
+Only return the error response if the card name is completely unrecognizable or fictional:
 {{
     "error": "Card not found or information unavailable"
 }}
 """
 
         response = client.models.generate_content(
-            model='gemini-2.0-flash-exp',
-            contents=prompt
+            model='gemini-2.5-flash',
+            contents=prompt,
+            config=genai.types.GenerateContentConfig(
+                tools=[genai.types.Tool(google_search=genai.types.GoogleSearch())]
+            ),
         )
         result_text = response.text
-
-        # Try to parse JSON from the response
-        import json
-        import re
 
         # Extract JSON from markdown code blocks if present
         json_match = re.search(r'```json\s*(.*?)\s*```', result_text, re.DOTALL)

@@ -11,9 +11,10 @@ interface BenefitRowProps {
   benefit: UserBenefit;
   onUse: () => void;
   cardName?: string;
+  hideFrequency?: boolean;
 }
 
-export function BenefitRow({ benefit, onUse, cardName }: BenefitRowProps) {
+export function BenefitRow({ benefit, onUse, cardName, hideFrequency }: BenefitRowProps) {
   const template = benefit.benefit_template;
   const amount = benefit.custom_amount_cents || template.amount_cents;
   const name = benefit.custom_name || template.name;
@@ -40,9 +41,11 @@ export function BenefitRow({ benefit, onUse, cardName }: BenefitRowProps) {
             <Badge variant="outline" className="text-xs">
               {getCategoryDisplayName(template.category)}
             </Badge>
-            <Badge variant="secondary" className="text-xs">
-              {getFrequencyDisplayName(template.frequency, template.period_type)}
-            </Badge>
+            {!hideFrequency && (
+              <Badge variant="secondary" className="text-xs">
+                {getFrequencyDisplayName(template.frequency, template.period_type)}
+              </Badge>
+            )}
           </div>
           {template.description && (
             <p className="text-xs sm:text-sm text-muted-foreground mb-2">
@@ -50,7 +53,7 @@ export function BenefitRow({ benefit, onUse, cardName }: BenefitRowProps) {
             </p>
           )}
         </div>
-        {daysUntilDeadline !== undefined && daysUntilDeadline <= 14 && (
+        {!isFullyUsed && daysUntilDeadline !== undefined && daysUntilDeadline <= 14 && (
           <Badge variant={getUrgencyColor(urgency) as any} className="self-start">
             <Clock className="h-3 w-3 mr-1" />
             {daysUntilDeadline}d left

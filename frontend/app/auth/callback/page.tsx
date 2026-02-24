@@ -42,6 +42,7 @@ function CallbackHandler() {
       try {
         const payload = JSON.parse(atob(access.split('.')[1]));
         if (payload.email) localStorage.setItem('user_email', payload.email);
+        if (payload.name) localStorage.setItem('user_name', payload.name);
       } catch {}
 
       router.replace('/dashboard');

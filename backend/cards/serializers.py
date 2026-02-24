@@ -94,7 +94,7 @@ class UserCardSerializer(serializers.ModelSerializer):
         model = UserCard
         fields = [
             'id', 'card_template', 'card_template_id', 'open_date',
-            'nickname', 'is_active', 'benefits', 'created_at', 'updated_at'
+            'nickname', 'card_type', 'credit_limit_cents', 'is_active', 'benefits', 'created_at', 'updated_at'
         ]
         read_only_fields = ['created_at', 'updated_at']
 
@@ -108,7 +108,7 @@ class UserCardListSerializer(serializers.ModelSerializer):
         model = UserCard
         fields = [
             'id', 'card_template', 'open_date', 'nickname',
-            'is_active', 'benefit_summary', 'created_at'
+            'card_type', 'credit_limit_cents', 'is_active', 'benefit_summary', 'created_at'
         ]
 
     def get_benefit_summary(self, obj):

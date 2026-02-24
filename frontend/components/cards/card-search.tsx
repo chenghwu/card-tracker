@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -9,7 +9,7 @@ import { searchCardTemplates } from '@/lib/api';
 import { formatCurrency } from '@/lib/utils';
 import type { CardTemplate } from '@/types';
 import { Search, Loader2, CreditCard, Sparkles } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 
 interface CardSearchProps {
   onSelect: (card: CardTemplate) => void;
@@ -22,24 +22,29 @@ interface CardSearchProps {
 export function CardSearch({ onSelect, onAIRequest, aiLoading = false }: CardSearchProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Debounce search
   const handleSearch = (value: string) => {
     setSearchQuery(value);
-    const timer = setTimeout(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
       setDebouncedQuery(value);
-    }, 300);
-    return () => clearTimeout(timer);
+    }, 500);
   };
 
-  const { data: results, isLoading } = useQuery({
+  const { data: results, isFetching } = useQuery({
     queryKey: ['card-search', debouncedQuery],
     queryFn: () => searchCardTemplates({ q: debouncedQuery, limit: 10 }),
-    enabled: debouncedQuery.length >= 2,
+    enabled: debouncedQuery.length >= 3,
+    placeholderData: keepPreviousData,
   });
+
+  // Hide results when the input is cleared
+  const hasQuery = searchQuery.length >= 3;
 
   const showAIFallback =
     !!onAIRequest &&
+    hasQuery &&
     results !== undefined &&
     results.length === 0 &&
     debouncedQuery.length >= 3;
@@ -53,18 +58,20 @@ export function CardSearch({ onSelect, onAIRequest, aiLoading = false }: CardSea
           placeholder="Search for a credit card (e.g., Chase Sapphire)"
           value={searchQuery}
           onChange={(e) => handleSearch(e.target.value)}
-          className="pl-9"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && onAIRequest && searchQuery.length >= 3 && !aiLoading) {
+              onAIRequest(searchQuery);
+            }
+          }}
+          className="pl-9 pr-9"
         />
+        {isFetching && (
+          <Loader2 className="absolute right-3 top-3 h-4 w-4 animate-spin text-muted-foreground" />
+        )}
       </div>
 
-      {isLoading && (
-        <div className="flex items-center justify-center py-8">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-        </div>
-      )}
-
-      {results && results.length > 0 && (
-        <div className="space-y-2">
+      {hasQuery && results && results.length > 0 && (
+        <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-1">
           {results.map((card) => (
             <Card
               key={card.id}
@@ -101,7 +108,7 @@ export function CardSearch({ onSelect, onAIRequest, aiLoading = false }: CardSea
         </div>
       )}
 
-      {results && results.length === 0 && debouncedQuery.length >= 2 && !showAIFallback && (
+      {hasQuery && results && results.length === 0 && debouncedQuery.length >= 3 && !showAIFallback && (
         <div className="text-center py-8 text-muted-foreground">
           <p>No cards found for &ldquo;{debouncedQuery}&rdquo;</p>
           <p className="text-sm mt-2">Try a different search term</p>

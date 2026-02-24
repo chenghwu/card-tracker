@@ -10,6 +10,7 @@ import { addCard, lookupCardWithAI } from '@/lib/api';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { CardTemplate } from '@/types';
 import { Plus, Loader2, CreditCard, Sparkles } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { formatCurrency } from '@/lib/utils';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -56,6 +57,10 @@ export function AddCardDialog() {
   const [selectedCard, setSelectedCard] = useState<CardTemplate | null>(null);
   const [openDate, setOpenDate] = useState('');
   const [nickname, setNickname] = useState('');
+  const [cardType, setCardType] = useState<'personal' | 'business'>('personal');
+  const [autoDetectedType, setAutoDetectedType] = useState<'personal' | 'business'>('personal');
+  const [pendingCardType, setPendingCardType] = useState<'personal' | 'business' | null>(null);
+  const [creditLimit, setCreditLimit] = useState('');
 
   // AI lookup state
   const [aiLoading, setAiLoading] = useState(false);
@@ -87,13 +92,23 @@ export function AddCardDialog() {
     setSelectedCard(null);
     setOpenDate('');
     setNickname('');
+    setCardType('personal');
+    setAutoDetectedType('personal');
+    setPendingCardType(null);
+    setCreditLimit('');
     setAiLoading(false);
     setAiError(null);
     setAiCard(null);
   };
 
+  const detectCardType = (card: CardTemplate): 'personal' | 'business' =>
+    /business/i.test(card.name) || /business/i.test(card.bank) ? 'business' : 'personal';
+
   const handleSelectCard = (card: CardTemplate) => {
     setSelectedCard(card);
+    const detected = detectCardType(card);
+    setCardType(detected);
+    setAutoDetectedType(detected);
     setStep('details');
   };
 
@@ -118,6 +133,9 @@ export function AddCardDialog() {
   const handleConfirmAICard = () => {
     if (!aiCard) return;
     setSelectedCard(aiCard);
+    const detected = detectCardType(aiCard);
+    setCardType(detected);
+    setAutoDetectedType(detected);
     setAiCard(null);
     setStep('details');
   };
@@ -136,6 +154,8 @@ export function AddCardDialog() {
       card_template_id: selectedCard.id,
       open_date: openDate,
       nickname: nickname || undefined,
+      card_type: cardType,
+      credit_limit_cents: creditLimit ? Math.round(parseFloat(creditLimit) * 100) : undefined,
     });
   };
 
@@ -162,6 +182,7 @@ export function AddCardDialog() {
       : 'Enter the details for your card';
 
   return (
+    <>
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button>
@@ -169,7 +190,7 @@ export function AddCardDialog() {
           Add Card
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto top-[15%] translate-y-0">
         <DialogHeader>
           <DialogTitle>{dialogTitle}</DialogTitle>
           <DialogDescription>{dialogDescription}</DialogDescription>
@@ -305,6 +326,38 @@ export function AddCardDialog() {
             </div>
 
             <div className="space-y-2">
+              <Label>Card Type</Label>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant={cardType === 'personal' ? 'default' : 'outline'}
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => {
+                    if (cardType !== 'personal') {
+                      'personal' === autoDetectedType ? setCardType('personal') : setPendingCardType('personal');
+                    }
+                  }}
+                >
+                  Personal
+                </Button>
+                <Button
+                  type="button"
+                  variant={cardType === 'business' ? 'default' : 'outline'}
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => {
+                    if (cardType !== 'business') {
+                      'business' === autoDetectedType ? setCardType('business') : setPendingCardType('business');
+                    }
+                  }}
+                >
+                  Business
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="nickname">Nickname (optional)</Label>
               <Input
                 id="nickname"
@@ -313,6 +366,23 @@ export function AddCardDialog() {
                 value={nickname}
                 onChange={(e) => setNickname(e.target.value)}
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="credit-limit">Credit Limit (optional)</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
+                <Input
+                  id="credit-limit"
+                  type="number"
+                  step="1"
+                  min="0"
+                  placeholder="e.g., 10000"
+                  value={creditLimit}
+                  onChange={(e) => setCreditLimit(e.target.value)}
+                  className="pl-7"
+                />
+              </div>
             </div>
 
             <div className="flex gap-2">
@@ -339,5 +409,23 @@ export function AddCardDialog() {
         )}
       </DialogContent>
     </Dialog>
+
+    <AlertDialog open={!!pendingCardType} onOpenChange={(open) => !open && setPendingCardType(null)}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Change card type?</AlertDialogTitle>
+          <AlertDialogDescription>
+            This card was automatically detected as <strong>{cardType}</strong>. Are you sure you want to change it to <strong>{pendingCardType}</strong>?
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={() => { setCardType(pendingCardType!); setPendingCardType(null); }}>
+            Change to {pendingCardType}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 }

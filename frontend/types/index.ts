@@ -39,6 +39,8 @@ export interface UserCard {
   card_template: CardTemplate;
   open_date: string; // ISO date string
   nickname: string | null;
+  card_type: 'personal' | 'business';
+  credit_limit_cents: number | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -89,11 +91,15 @@ export interface AddCardRequest {
   card_template_id: number;
   open_date: string; // ISO date string
   nickname?: string;
+  card_type?: 'personal' | 'business';
+  credit_limit_cents?: number;
 }
 
 export interface UpdateCardRequest {
   open_date?: string;
   nickname?: string;
+  card_type?: 'personal' | 'business';
+  credit_limit_cents?: number | null;
   is_active?: boolean;
 }
 
@@ -106,6 +112,8 @@ export interface RecordUsageRequest {
 // Dashboard Summary
 export interface DashboardSummary {
   total_cards: number;
+  personal_cards: number;
+  business_cards: number;
   total_benefits: number;
   total_annual_fee_cents: number;
   total_credits_available_cents: number;

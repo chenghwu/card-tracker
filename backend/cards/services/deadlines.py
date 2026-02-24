@@ -124,6 +124,8 @@ def get_dashboard_summary(user, reference_date: date = None):
     ).prefetch_related('benefits__benefit_template', 'benefits__usage_records')
 
     total_cards = user_cards.count()
+    personal_cards = user_cards.filter(card_type='personal').count()
+    business_cards = user_cards.filter(card_type='business').count()
     total_benefits = 0
     total_credits_available_cents = 0
     total_credits_used_cents = 0
@@ -152,6 +154,8 @@ def get_dashboard_summary(user, reference_date: date = None):
 
     return {
         'total_cards': total_cards,
+        'personal_cards': personal_cards,
+        'business_cards': business_cards,
         'total_benefits': total_benefits,
         'total_annual_fee_cents': total_annual_fee_cents,
         'total_credits_available_cents': total_credits_available_cents,

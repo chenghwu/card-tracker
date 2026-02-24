@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -14,10 +15,18 @@ import { MobileSidebar } from './sidebar';
 import Link from 'next/link';
 
 export function Topbar() {
+  const [userName, setUserName] = useState('');
+
+  useEffect(() => {
+    const name = localStorage.getItem('user_name');
+    if (name) setUserName(name);
+  }, []);
+
   const handleSignOut = () => {
-    // Clear tokens and redirect
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
+    localStorage.removeItem('user_email');
+    localStorage.removeItem('user_name');
     window.location.href = '/login';
   };
 
@@ -29,8 +38,11 @@ export function Topbar() {
       <div className="flex items-center gap-4">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="rounded-full">
+            <Button variant="ghost" className="flex items-center gap-2 rounded-full px-3">
               <User className="h-5 w-5" />
+              {userName && (
+                <span className="text-sm font-medium hidden sm:inline">{userName}</span>
+              )}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">

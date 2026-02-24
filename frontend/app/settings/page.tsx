@@ -18,6 +18,7 @@ import { User, Bell, LogOut, Mail } from 'lucide-react';
 
 export default function SettingsPage() {
   const [email, setEmail] = useState('demo@example.com');
+  const [name, setName] = useState('');
   const [expiringBenefits, setExpiringBenefits] = useState(true);
   const [weeklySummary, setWeeklySummary] = useState(false);
 
@@ -25,9 +26,9 @@ export default function SettingsPage() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('user_email');
-      if (stored) {
-        setEmail(stored);
-      }
+      if (stored) setEmail(stored);
+      const storedName = localStorage.getItem('user_name');
+      if (storedName) setName(storedName);
     }
   }, []);
 
@@ -58,6 +59,14 @@ export default function SettingsPage() {
             <CardDescription>Your account information</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            {name && (
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground uppercase tracking-wide">
+                  Name
+                </Label>
+                <p className="text-sm font-medium">{name}</p>
+              </div>
+            )}
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground uppercase tracking-wide">
                 Email

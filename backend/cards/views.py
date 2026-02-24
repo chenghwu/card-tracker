@@ -68,12 +68,16 @@ class CardTemplateViewSet(viewsets.ReadOnlyModelViewSet):
                     Q(bank__icontains=expanded_first) & Q(name__icontains=rest_of_query)
                 )
             else:
-                queryset = queryset.filter(
-                    Q(name__icontains=search_query) |
-                    Q(bank__icontains=search_query) |
-                    Q(bank__icontains=expanded_full) |
-                    Q(bank__icontains=expanded_first)
-                )
+                # Split into words and require each word to match name or bank (fuzzy AND)
+                words = search_query.split()
+                combined = Q(name__icontains=search_query) | Q(bank__icontains=search_query)
+                if len(words) > 1:
+                    word_filter = Q()
+                    for word in words:
+                        word_filter &= (Q(name__icontains=word) | Q(bank__icontains=word))
+                    combined |= word_filter
+                combined |= Q(bank__icontains=expanded_full) | Q(bank__icontains=expanded_first)
+                queryset = queryset.filter(combined)
 
         return queryset.order_by('bank', 'name')
 
