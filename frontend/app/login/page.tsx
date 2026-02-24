@@ -1,11 +1,25 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { CreditCard } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { CreditCard, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 
+function isInAppBrowser() {
+  if (typeof navigator === 'undefined') return false;
+  const ua = navigator.userAgent;
+  return /FBAN|FBAV|Instagram|Twitter|Line\/|KAKAOTALK|Snapchat|TikTok|LinkedIn/i.test(ua);
+}
+
 export default function LoginPage() {
+  const [inAppBrowser, setInAppBrowser] = useState(false);
+
+  useEffect(() => {
+    setInAppBrowser(isInAppBrowser());
+  }, []);
+
   const handleGoogleSignIn = () => {
     // Real Google OAuth flow via django-allauth (server-side redirect).
     //
@@ -65,6 +79,15 @@ export default function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {inAppBrowser && (
+            <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                Google sign-in doesn&apos;t work inside Facebook or other in-app browsers.
+                Please open this page in <strong>Safari</strong> or <strong>Chrome</strong> to sign in.
+              </AlertDescription>
+            </Alert>
+          )}
           <Button
             className="w-full"
             variant="outline"
