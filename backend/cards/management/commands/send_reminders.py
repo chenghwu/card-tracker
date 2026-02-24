@@ -31,8 +31,6 @@ class Command(BaseCommand):
         if dry_run:
             self.stdout.write(self.style.WARNING('DRY RUN MODE - No emails will be sent'))
 
-        # Define reminder thresholds
-        thresholds = [3, 7, 14]  # Days before expiration
         today = date.today()
 
         # Get all users with active cards
@@ -44,8 +42,8 @@ class Command(BaseCommand):
         total_benefits = 0
 
         for user in users:
-            # Get expiring benefits for this user (within 14 days)
-            expiring_benefits = get_expiring_benefits(user, today, max_days=14)
+            # Get expiring benefits for this user (within 7 days only)
+            expiring_benefits = get_expiring_benefits(user, today, max_days=7)
 
             if not expiring_benefits:
                 continue
@@ -59,10 +57,8 @@ class Command(BaseCommand):
                 # Categorize by threshold
                 if days_left <= 3:
                     benefits_by_threshold['critical'].append(benefit)
-                elif days_left <= 7:
+                else:
                     benefits_by_threshold['warning_7'].append(benefit)
-                elif days_left <= 14:
-                    benefits_by_threshold['warning_14'].append(benefit)
 
             # Only send if there are benefits in our thresholds
             if benefits_by_threshold:
@@ -99,9 +95,8 @@ class Command(BaseCommand):
         # Prepare email context
         critical_benefits = benefits_by_threshold.get('critical', [])
         warning_7_benefits = benefits_by_threshold.get('warning_7', [])
-        warning_14_benefits = benefits_by_threshold.get('warning_14', [])
 
-        total_at_risk_cents = sum(
+        total_unused_cents = sum(
             b.remaining_amount_cents
             for benefits_list in benefits_by_threshold.values()
             for b in benefits_list
@@ -111,18 +106,15 @@ class Command(BaseCommand):
             'user': user,
             'critical_benefits': critical_benefits,
             'warning_7_benefits': warning_7_benefits,
-            'warning_14_benefits': warning_14_benefits,
-            'total_at_risk': total_at_risk_cents / 100,
+            'total_unused': total_unused_cents / 100,
             'total_benefits_count': sum(len(b) for b in benefits_by_threshold.values()),
         }
 
         # Create email subject
         if critical_benefits:
-            subject = f'⚠️ Urgent: {len(critical_benefits)} credit card benefit(s) expiring in 3 days!'
-        elif warning_7_benefits:
-            subject = f'Reminder: {len(warning_7_benefits)} credit card benefit(s) expiring this week'
+            subject = f'Card Tracker ⚠️ Urgent: {len(critical_benefits)} credit card benefit(s) expiring in 3 days!'
         else:
-            subject = f'Reminder: {len(warning_14_benefits)} credit card benefit(s) expiring soon'
+            subject = f'Card Tracker Reminder: {len(warning_7_benefits)} credit card benefit(s) expiring this week'
 
         # Generate email body
         html_message = self.generate_html_email(context)
@@ -193,7 +185,7 @@ class Command(BaseCommand):
     </div>
     <div class="content">
         <div class="summary">
-            <strong>Total at risk:</strong> ${context['total_at_risk']:.2f} in {context['total_benefits_count']} benefit(s)
+            <strong>Total unused:</strong> ${context['total_unused']:.2f} in {context['total_benefits_count']} benefit(s)
         </div>
 
         {self._render_benefit_section(
@@ -208,13 +200,6 @@ class Command(BaseCommand):
             'Expiring this week (4-7 days)',
             'warning',
             '⚠️'
-        )}
-
-        {self._render_benefit_section(
-            context.get('warning_14_benefits', []),
-            'Expiring soon (8-14 days)',
-            'warning',
-            '📅'
         )}
 
         <p>Log in to your Card Tracker dashboard to use these benefits before they expire!</p>
@@ -235,6 +220,8 @@ class Command(BaseCommand):
         cards_html = ''
         for benefit in benefits:
             card_name = benefit.user_card.nickname or benefit.user_card.card_template.name
+            bank = benefit.user_card.card_template.bank
+            full_card_name = f"{bank} {card_name}"
             benefit_name = benefit.effective_name
             remaining = benefit.remaining_amount_cents / 100
             days_left = benefit.days_until_expiry
@@ -244,7 +231,7 @@ class Command(BaseCommand):
         <div class="benefit-card {css_class}">
             <div class="benefit-header">{benefit_name}</div>
             <div class="benefit-meta">
-                Card: {card_name}<br>
+                Card: {full_card_name}<br>
                 Remaining: <span class="amount">${remaining:.2f}</span><br>
                 Expires: {period_end} ({days_left} day{'s' if days_left != 1 else ''} left)
             </div>
@@ -266,7 +253,7 @@ Credit Card Benefits Reminder
 
 Hi {context['user'].first_name or context['user'].username},
 
-You have ${context['total_at_risk']:.2f} in credit card benefits expiring soon!
+You have ${context['total_unused']:.2f} in unused credit card benefits expiring soon!
 
 """
 
@@ -275,10 +262,11 @@ You have ${context['total_at_risk']:.2f} in credit card benefits expiring soon!
             message += "-" * 50 + "\n"
             for benefit in context['critical_benefits']:
                 card_name = benefit.user_card.nickname or benefit.user_card.card_template.name
+                bank = benefit.user_card.card_template.bank
                 remaining = benefit.remaining_amount_cents / 100
                 days_left = benefit.days_until_expiry
                 message += f"• {benefit.effective_name}\n"
-                message += f"  Card: {card_name}\n"
+                message += f"  Card: {bank} {card_name}\n"
                 message += f"  Remaining: ${remaining:.2f}\n"
                 message += f"  Expires in: {days_left} day{'s' if days_left != 1 else ''}\n\n"
 
@@ -287,22 +275,11 @@ You have ${context['total_at_risk']:.2f} in credit card benefits expiring soon!
             message += "-" * 50 + "\n"
             for benefit in context['warning_7_benefits']:
                 card_name = benefit.user_card.nickname or benefit.user_card.card_template.name
+                bank = benefit.user_card.card_template.bank
                 remaining = benefit.remaining_amount_cents / 100
                 days_left = benefit.days_until_expiry
                 message += f"• {benefit.effective_name}\n"
-                message += f"  Card: {card_name}\n"
-                message += f"  Remaining: ${remaining:.2f}\n"
-                message += f"  Expires in: {days_left} days\n\n"
-
-        if context.get('warning_14_benefits'):
-            message += "\n📅 Expiring soon (8-14 days)\n"
-            message += "-" * 50 + "\n"
-            for benefit in context['warning_14_benefits']:
-                card_name = benefit.user_card.nickname or benefit.user_card.card_template.name
-                remaining = benefit.remaining_amount_cents / 100
-                days_left = benefit.days_until_expiry
-                message += f"• {benefit.effective_name}\n"
-                message += f"  Card: {card_name}\n"
+                message += f"  Card: {bank} {card_name}\n"
                 message += f"  Remaining: ${remaining:.2f}\n"
                 message += f"  Expires in: {days_left} days\n\n"
 
