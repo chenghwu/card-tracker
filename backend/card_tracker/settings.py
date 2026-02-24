@@ -238,13 +238,14 @@ if DEBUG:
     # Use console backend for development (prints emails to console)
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 else:
-    # Use SMTP for production
+    # Use Resend SMTP relay for production
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-    EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
-    EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
-    EMAIL_USE_TLS = True
-    EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
-    EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+    EMAIL_HOST = 'smtp.resend.com'
+    EMAIL_PORT = 465
+    EMAIL_USE_SSL = True
+    EMAIL_USE_TLS = False
+    EMAIL_HOST_USER = 'resend'
+    EMAIL_HOST_PASSWORD = config('RESEND_API_KEY', default='')
 
 # dj-rest-auth Configuration
 REST_AUTH = {
@@ -276,6 +277,9 @@ SOCIALACCOUNT_PROVIDERS = {
 # Gemini API Configuration
 GEMINI_API_KEY = config('GEMINI_API_KEY', default='')
 
+# Cron secret for authenticating external cron triggers
+CRON_SECRET = config('CRON_SECRET', default='')
+
 # Frontend URL (used for OAuth redirects)
 FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:3000')
 
@@ -301,7 +305,7 @@ if not DEBUG:
     SECURE_BROWSER_XSS_FILTER = True
 
 # Email Configuration (Default From Email)
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@cardtracker.com')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='Card Tracker <onboarding@resend.dev>')
 
 # Logging Configuration
 LOGGING = {

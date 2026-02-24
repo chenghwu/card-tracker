@@ -9,6 +9,7 @@ from .views import (
     dashboard_monthly_overview,
     card_lookup,
     health_check,
+    cron_send_reminders,
 )
 
 router = DefaultRouter()
@@ -23,4 +24,5 @@ urlpatterns = [
     path('dashboard/monthly-overview/', dashboard_monthly_overview, name='dashboard-monthly-overview'),
     path('card-lookup/', card_lookup, name='card-lookup'),
     path('health/', health_check, name='health-check'),
+    path('cron/send-reminders/', cron_send_reminders, name='cron-send-reminders'),
 ]

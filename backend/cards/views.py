@@ -335,6 +335,29 @@ def dashboard_monthly_overview(request):
     return Response(results)
 
 
+@api_view(['POST'])
+@permission_classes([AllowAny])
+@throttle_classes([])
+def cron_send_reminders(request):
+    """
+    Trigger the send_reminders management command via HTTP.
+    Secured by a shared secret in the X-Cron-Secret header.
+    POST /api/cron/send-reminders/
+    """
+    secret = request.headers.get('X-Cron-Secret', '')
+    if not secret or secret != settings.CRON_SECRET:
+        return Response({'error': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    from django.core.management import call_command
+    from io import StringIO
+    out = StringIO()
+    try:
+        call_command('send_reminders', stdout=out)
+        return Response({'status': 'ok', 'output': out.getvalue()})
+    except Exception as e:
+        return Response({'status': 'error', 'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 @api_view(['GET'])
 @permission_classes([AllowAny])
 @throttle_classes([])
