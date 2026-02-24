@@ -8,6 +8,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.db import connection
+from django.conf import settings
 from .models import CardTemplate, UserCard, UserBenefit, BenefitUsage
 from .serializers import (
     CardTemplateSerializer,
