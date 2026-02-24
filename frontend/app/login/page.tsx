@@ -94,11 +94,12 @@ export default function LoginPage() {
             <Alert variant="destructive">
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription>
-                {isAndroid() ? (
-                  <>Opening in Chrome&hellip; If it doesn&apos;t redirect automatically, tap the <strong>⋮</strong> menu and select <strong>Open in Chrome</strong>.</>
-                ) : (
-                  <>Google sign-in doesn&apos;t work in this browser. Tap the <strong>⋯</strong> button (bottom or top right) and select <strong>Open in Safari</strong>.</>
-                )}
+                <span>
+                  {isAndroid()
+                    ? <>Opening in Chrome&hellip; If it doesn&apos;t redirect, tap the <b>⋮</b> menu and select <b>Open in Chrome</b>.</>
+                    : <>Google sign-in doesn&apos;t work in this browser. Tap the <b>⋯</b> button and select <b>Open in external browser</b>.</>
+                  }
+                </span>
               </AlertDescription>
             </Alert>
           )}
