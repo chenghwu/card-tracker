@@ -18,7 +18,7 @@ export function DeadlineList({ deadlines }: DeadlineListProps) {
 
   // Group by issuer → card name
   const byIssuer = deadlines.reduce<Record<string, Record<string, DashboardDeadline[]>>>((acc, d) => {
-    const issuer = d.card_issuer;
+    const issuer = d.card_issuer || d.card_name.split(' ')[0];
     const card = d.card_name;
     if (!acc[issuer]) acc[issuer] = {};
     if (!acc[issuer][card]) acc[issuer][card] = [];
