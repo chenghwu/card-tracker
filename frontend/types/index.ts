@@ -130,6 +130,7 @@ export interface DashboardSummary {
 // UserBenefitSerializer.
 export interface DashboardDeadline extends UserBenefit {
   card_name: string;
+  card_issuer: string;
 }
 
 // Card Detail Response

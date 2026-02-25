@@ -5,9 +5,10 @@ import { MainLayout } from '@/components/layout/main-layout';
 import { SummaryCards } from '@/components/dashboard/summary-cards';
 import { SummaryCardsSkeleton } from '@/components/dashboard/summary-cards-skeleton';
 import { DeadlineList } from '@/components/dashboard/deadline-list';
-import { MonthlyOverview } from '@/components/dashboard/monthly-overview';
-import { getDashboardSummary, getDashboardDeadlines, getMonthlyOverview } from '@/lib/api';
+import { DashboardBenefits } from '@/components/dashboard/dashboard-benefits';
+import { getDashboardSummary, getDashboardDeadlines } from '@/lib/api';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function DashboardPage() {
   const {
@@ -28,17 +29,8 @@ export default function DashboardPage() {
     queryFn: getDashboardDeadlines,
   });
 
-  const {
-    data: monthlyData,
-    isLoading: monthlyLoading,
-    error: monthlyError,
-  } = useQuery({
-    queryKey: ['monthly-overview'],
-    queryFn: getMonthlyOverview,
-  });
-
   const isLoading = summaryLoading || deadlinesLoading;
-  const error = summaryError || deadlinesError || monthlyError;
+  const error = summaryError || deadlinesError;
 
   return (
     <MainLayout>
@@ -63,20 +55,16 @@ export default function DashboardPage() {
             <SummaryCardsSkeleton />
             <div className="grid gap-8 lg:grid-cols-2">
               <div className="space-y-4">
-                <div className="h-6 w-48 bg-accent animate-pulse rounded" />
-                <div className="space-y-2">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="h-16 bg-accent animate-pulse rounded" />
-                  ))}
-                </div>
+                <Skeleton className="h-6 w-48" />
+                {[1, 2, 3].map((i) => (
+                  <Skeleton key={i} className="h-16 w-full" />
+                ))}
               </div>
               <div className="space-y-4">
-                <div className="h-6 w-48 bg-accent animate-pulse rounded" />
-                <div className="space-y-2">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="h-16 bg-accent animate-pulse rounded" />
-                  ))}
-                </div>
+                <Skeleton className="h-6 w-48" />
+                {[1, 2, 3].map((i) => (
+                  <Skeleton key={i} className="h-16 w-full" />
+                ))}
               </div>
             </div>
           </>
@@ -85,7 +73,7 @@ export default function DashboardPage() {
             {summary && <SummaryCards summary={summary} />}
             <div className="grid gap-8 lg:grid-cols-2">
               {deadlines && <DeadlineList deadlines={deadlines} />}
-              <MonthlyOverview benefits={monthlyData ?? []} isLoading={monthlyLoading} />
+              <DashboardBenefits />
             </div>
           </>
         )}
